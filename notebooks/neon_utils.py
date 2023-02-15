@@ -92,7 +92,7 @@ def plot_soil_profile_timeseries(sim_path, neon_site, case_name, var, year):
     
     ds_all = []
     for f in tqdm.tqdm(sim_files):
-        ds_tmp = xr.open_dataset(f,drop_variables=['ZSOI','DZSOI','WATSAT','SUCSAT','BSW','HKSAT','ZLAKE','DZLAKE'])
+        ds_tmp = xr.open_dataset(f,drop_variables=['ZSOI','DZSOI','WATSAT','SUCSAT','BSW','HKSAT','ZLAKE','DZLAKE','PCT_SAND','PCT_CLAY'])
         ds_all.append(ds_tmp.isel(time = 24))
     
     ds_ctsm = xr.concat (ds_all,dim='time')
@@ -187,18 +187,13 @@ def list_neon_eval_files(neon_site, version = 'v2'):
     """
     # -- download listing.csv
     listing_file = 'listing.csv'
-    url = 'https://storage.neonscience.org/neon-ncar/listing.csv'
+    url = "https://storage.neonscience.org/neon-ncar/listing.csv"
     download_file(url, listing_file)
     
     # -- find eval files
     df = pd.read_csv(listing_file)
     df = df[df['object'].str.contains(neon_site+"_eval")]
     df = df[df['object'].str.contains(version)]
-    print ('-------')
-    with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
-        pd.set_option('display.max_colwidth', None)  # or 199
-
-        print (df['object'])
     dict_out = dict(zip(df['object'],df['last_modified']))
     return dict_out 
 
@@ -302,6 +297,8 @@ def download_atm_files2 (neon_site, eval_dir, year="all"):
             download_file(key, fname)
 
 
+    
+        
 def download_eval_files (neon_site, eval_dir, year="all"):
     """              
     A function to download all eval files for the specified
@@ -336,7 +333,6 @@ def download_eval_files (neon_site, eval_dir, year="all"):
         fname = key.rsplit('/',1)[1]
         if year=="all" or year in fname:
                 fname_out = os.path.join(site_eval_dir, fname)
-                print (fname_out)
                 download_file(key, fname_out)
 
 def download_atm_files (neon_site, eval_dir, year="all"):
