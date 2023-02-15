@@ -15,7 +15,7 @@ git clone neon_scripts
 2. Build Conda Python environments:
 ```
 conda env create -f environment.yml
-conda activate neon_paper
+conda activate neon-paper
 ```
 
 3. Set paths for input data and model data, or alternatively run the preprocessor notebook. 

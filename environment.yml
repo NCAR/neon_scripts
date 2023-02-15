@@ -1,0 +1,20 @@
+name: neon-paper
+channels:
+- conda-forge
+dependencies:
+- aiohttp
+- bokeh
+- bottleneck
+- cartopy
+- cf_units
+- cftime
+- jupyterlab
+- matplotlib
+- netcdf4
+- numpy
+- pandas
+- pip
+- python=3.7
+- scipy
+- seaborn
+- xarray
