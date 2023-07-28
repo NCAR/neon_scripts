@@ -102,7 +102,6 @@ def plot_soil_profile_timeseries(sim_path, neon_site, case_name, var, year):
     print("Reading all simulation files [", len(sim_files), "files] took:", end-start, "s.")
         
     if var=='TSOI':
-        #ds_ctsm[var].isel(levgrnd=(slice(0,9))).plot(x="time",yincrease=False, robust=True,cmap='YlOrRd',figsize=(15, 5))
         
         tsoi = ds_ctsm[var].isel(levgrnd=(slice(0,9)))
         x= tsoi.time.values
@@ -124,7 +123,7 @@ def plot_soil_profile_timeseries(sim_path, neon_site, case_name, var, year):
         #cmap = 'viridis'
         var_name = 'Soil Moisture'
         var_unit = '[mm3/mm3]'
-        #ds_ctsm[var].isel(levsoi=(slice(0,15))).plot(x="time",yincrease=False, robust=True,cmap='viridis',figsize=(15, 5))
+
         cmap = plt.get_cmap('gist_earth_r')
         cmap = truncate_colormap(cmap, 0.15, 0.9)
         
@@ -151,8 +150,6 @@ def plot_soil_profile_timeseries(sim_path, neon_site, case_name, var, year):
 
 
     
-        
-
                      
                      
 def download_file(url, fname):
@@ -193,11 +190,20 @@ def list_neon_eval_files(neon_site, version = 'v2'):
     # -- find eval files
     df = pd.read_csv(listing_file)
     df = df[df['object'].str.contains(neon_site+"_eval")]
+    
+    dict_out = dict(zip(df['object'],df['last_modified']))
+    return dict_out  
+        
     df = df[df['object'].str.contains(version)]
+    print ('-------')
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+        pd.set_option('display.max_colwidth', None)  # or 199
+
+        print (df['object'])
     dict_out = dict(zip(df['object'],df['last_modified']))
     return dict_out 
 
-def list_neon_atm_files(neon_site, version = 'v2'):                               
+def list_neon_atm_files(neon_site,version = 'v2'):                               
     """              
     A function to download neon listing.csv file
     and parse it to find all eval files for the specified
@@ -212,18 +218,53 @@ def list_neon_atm_files(neon_site, version = 'v2'):
     url = 'https://storage.neonscience.org/neon-ncar/listing.csv'
     download_file(url, listing_file)
     
-    # -- find eval files
+    # -- find atm files
     df = pd.read_csv(listing_file)
     df = df[df['object'].str.contains(neon_site+"_atm")]
+    
+    dict_out = dict(zip(df['object'],df['last_modified']))
+    return dict_out  
+        
     df = df[df['object'].str.contains(version)]
     print ('-------')
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
         pd.set_option('display.max_colwidth', None)  # or 199
 
-        print (df['object'])
+    dict_out = dict(zip(df['object'],df['last_modified']))
+    return dict_out 
+
+        
+def list_ctsm_hist_files(neon_site):                               
+    """              
+    A function to download neon listing.csv file
+    and parse it to find all eval files for the specified
+    neon tower site .
+    
+    Args:
+        neon_site (str):
+            4 character name of your neon site
+    """
+    # -- download listing.csv
+    listing_file = 'listing.csv'
+    url = 'https://storage.neonscience.org/neon-ncar/listing.csv'
+    download_file(url, listing_file)
+    
+    # -- find hist files
+    df = pd.read_csv(listing_file)
+    df = df[df['object'].str.contains(neon_site+".transient.clm2.h")]
+    
     dict_out = dict(zip(df['object'],df['last_modified']))
     return dict_out  
         
+    print ('-------')
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+        pd.set_option('display.max_colwidth', None)  # or 199
+
+    dict_out = dict(zip(df['object'],df['last_modified']))
+    return dict_out 
+
+
+
 def download_eval_files2 (neon_site, eval_dir, year="all"):
     """              
     A function to download all eval files for the specified
@@ -297,8 +338,6 @@ def download_atm_files2 (neon_site, eval_dir, year="all"):
             download_file(key, fname)
 
 
-    
-        
 def download_eval_files (neon_site, eval_dir, year="all"):
     """              
     A function to download all eval files for the specified
@@ -333,7 +372,7 @@ def download_eval_files (neon_site, eval_dir, year="all"):
         fname = key.rsplit('/',1)[1]
         if year=="all" or year in fname:
                 fname_out = os.path.join(site_eval_dir, fname)
-                download_file(key, fname_out)
+                download_file(key, fname_out)     
 
 def download_atm_files (neon_site, eval_dir, year="all"):
     """              
@@ -364,10 +403,47 @@ def download_atm_files (neon_site, eval_dir, year="all"):
 
     #-- get all available eval file names
     file_time = list_neon_atm_files(neon_site)
-
+    print(file_time)
     for key, value in file_time.items():
         fname = key.rsplit('/',1)[1]
         if year=="all" or year in fname:
                 fname_out = os.path.join(site_eval_dir, fname)
                 print (fname_out)
                 download_file(key, fname_out)
+                
+                
+def download_hist_files(neon_site, eval_dir, year="all"):
+    """              
+    A function to download all eval files for the specified
+    neon tower site .
+    
+    Args:
+        neon_site (str):
+            4 character name of your neon site
+        eval_dir (str):
+            directory where you want your evaluation files
+    """
+
+    if (year=="all"):
+        print ("Downloading all available evaluation files for "+neon_site+".")
+    else:
+        print ("Downloading evaluation files for "+neon_site+" for year "+year+".")
+
+    #-- create directory if it does not exist
+    if not os.path.isdir(eval_dir):
+        os.mkdir(eval_dir)
+    
+    site_eval_dir = os.path.join(eval_dir,neon_site)
+
+    #-- create directory for the site if it does not exist
+    if not os.path.isdir(site_eval_dir):
+        os.mkdir(site_eval_dir)
+
+    #-- get all available eval file names
+    file_time = list_ctsm_hist_files(neon_site)
+
+    for key, value in file_time.items():
+        fname = key.rsplit('/',1)[1]
+        if year=="all" or year in fname:
+                fname_out = os.path.join(site_eval_dir, fname)
+                download_file(key, fname_out)     
